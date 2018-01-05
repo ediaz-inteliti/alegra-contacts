@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Modelo Contacto que actua como mapper al servicio web de Alegra
+ */
 class Application_Model_ContactMapper
 {
 	private $_baseUri;
@@ -10,12 +13,15 @@ class Application_Model_ContactMapper
 
 	public function __construct()
 	{
+		//se obtienen los parametros de configuracion para conectarse al API
 		$dataBootstrap = Zend_Controller_Front::getInstance()->getParam('bootstrap');
 		$dataAlegra = $dataBootstrap->getOption('configAlegra');
 		$this->_baseUri = $dataAlegra['uri'];
 		$this->_uri = $this->_baseUri . 'contacts';
 		$this->_email = $dataAlegra['email'];
 		$this->_token = $dataAlegra['token'];
+		
+		//Se inicializa objeto que se conecta al API de alegra
 		$this->_client = new Zend_Http_Client();
 		$this->_client->setUri($this->_uri);
 		$this->_client->setConfig(array('timeout' => 30));
@@ -23,6 +29,11 @@ class Application_Model_ContactMapper
 						  Zend_Http_Client::AUTH_BASIC);
 	}
 
+	/**
+	 * Metodo para guardar un contacto (Crear y actualizar)
+	 * @param Application_Model_Contact $contact
+	 * @return type
+	 */
 	public function store(Application_Model_Contact $contact)
 	{
 		$type = array();
@@ -75,6 +86,15 @@ class Application_Model_ContactMapper
 		return $data;
 	}
 
+	/**
+	 * Metodo para obetner listado de contactos
+	 * 
+	 * @param type $type
+	 * @param type $query
+	 * @param type $start
+	 * @param type $limit
+	 * @return type
+	 */
 	public function getAll($type = '', $query = '', $start = 0, $limit = 20)
 	{
 		$params = "?start=$start&limit=$limit&metadata=true";
@@ -112,6 +132,12 @@ class Application_Model_ContactMapper
 		];
 	}
 
+	/**
+	 * Metodo para obtener detalle de contacto
+	 * 
+	 * @param type $id
+	 * @return type
+	 */
 	public function get($id)
 	{
 		$this->_client->setUri($this->_uri . "/$id");
@@ -133,6 +159,12 @@ class Application_Model_ContactMapper
 		];
 	}
 
+	/**
+	 * Metodo para eliminar un contacto
+	 * 
+	 * @param type $id
+	 * @return type
+	 */
 	public function delete($id)
 	{
 		$this->_client->setUri($this->_uri . "/$id");
@@ -148,6 +180,12 @@ class Application_Model_ContactMapper
 		return $data;
 	}
 
+	/**
+	 * Este metodo permite curar los datos para adecuarlos a la estructura definida en esta aplicación
+	 * 
+	 * @param type $data
+	 * @return boolean
+	 */
 	private function _parseData($data = [])
 	{
 		$i = 0;

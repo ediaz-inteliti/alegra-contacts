@@ -1,7 +1,12 @@
 <?php
 
+/**
+ * Modelo de contacto
+ * Se definen todos los atributos y metodos para acceso a la clase Contacto
+ */
 class Application_Model_Contact
 {
+	
 	public $id;
 	public $name;
 	public $identification;
@@ -20,6 +25,7 @@ class Application_Model_Contact
 	public $isProvider;
 	public $internalContacts;
 
+	
 	public function __construct(array $options = null)
 	{
 		if (is_array($options))
@@ -28,6 +34,7 @@ class Application_Model_Contact
 		}
 	}
 
+	
 	public function __set($name, $value)
 	{
 		$method = 'set' . $name;
@@ -37,7 +44,8 @@ class Application_Model_Contact
 		}
 		$this->$method($value);
 	}
-
+	
+	
 	public function __get($name)
 	{
 		$method = 'get' . $name;
@@ -47,7 +55,8 @@ class Application_Model_Contact
 		}
 		return $this->$method();
 	}
-
+	
+	
 	public function setOptions(array $options)
 	{
 		$methods = get_class_methods($this);
@@ -61,46 +70,46 @@ class Application_Model_Contact
 		}
 		return $this;
 	}
-
+	
 	public function setId($id)
 	{
 		$this->id = (int) $id;
 		return $this;
 	}
-
+	
 	public function getId()
 	{
 		return $this->id;
 	}
-
+	
 	public function setName($name)
 	{
 		$this->name = (string) $name;
 		return $this;
 	}
-
+	
 	public function getName()
 	{
 		return $this->name;
 	}
-
+	
 	public function setIdentification($identification)
 	{
 		$this->identification = (string) $identification;
 		return $this;
 	}
-
+	
 	public function getIdentification()
 	{
 		return $this->identification;
 	}
-
+	
 	public function setPhonePrimary($phonePrimary)
 	{
 		$this->phonePrimary = (string) $phonePrimary;
 		return $this;
 	}
-
+	
 	public function getPhonePrimary()
 	{
 		return $this->phonePrimary;

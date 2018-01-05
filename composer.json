@@ -1,0 +1,14 @@
+{
+	"name": "Contactos Alegra",
+	"description": "App para conectarse al API de app.alegra.com para hacer una interfaz CRUD con el módulo de contactos",
+	"type": "project",
+	"require": {
+		"zendframework/zendframework1": "^1.12"
+	},
+	"authors": [
+		{
+			"name": "Eduardo Díaz",
+			"email": "ediaz@inteliti.com"
+		}
+	]
+}
