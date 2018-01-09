@@ -12,21 +12,21 @@ Documentación
 El proyecto fue realizado utilizando en el backend el framework PHP Zend en su versión 1.12 y en el frontend el framewrok JavaScript ExtJS en su versión 6.2. La estructura del proyecto es la siguiente:
 
  - **application:**  Aplicación Backend
-  - **config:** Archivos de configuración
-  - **controllers** Controladores
-  - **layouts** Layout genérico para la aplicación
-  - **models** Modelos y Mappers para conectarse con el servicio web de Alegra
-  - **views** Vistas
+	- **config:** Archivos de configuración
+	- **controllers** Controladores
+	- **layouts** Layout genérico para la aplicación
+	- **models** Modelos y Mappers para conectarse con el servicio web de Alegra
+	- **views** Vistas
  - **docs:** Documentación
  - **public:** Aplicación Frontend
-  - **app:** Logica del negocio
-  - **controller**
-  - **model**
-  - **store**
-  - **view**
-  - **css** archivos css de la app
-  - **ext** Libreria Extjs
-  - **sass** archivos sass para estilos de Extjs
+	- **app:** Logica del negocio
+	- **controller**
+	- **model**
+	- **store**
+	- **view**
+	- **css** archivos css de la app
+	- **ext** Libreria Extjs
+	- **sass** archivos sass para estilos de Extjs
 
 ----------
 
@@ -39,3 +39,4 @@ Puesta en marcha
  - Ejecutar composer composer install
  - Instalar Ext CMD
  - Ejecutar sencha app build
+ - Registrarse en https://app.alegra.com y conseguir el usuario y token y luego configurar en application/config/application.ini
