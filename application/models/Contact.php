@@ -6,7 +6,7 @@
  */
 class Application_Model_Contact
 {
-	
+	//Atributos objeto Contacto
 	public $id;
 	public $name;
 	public $identification;
@@ -25,7 +25,7 @@ class Application_Model_Contact
 	public $isProvider;
 	public $internalContacts;
 
-	
+	//Constructor
 	public function __construct(array $options = null)
 	{
 		if (is_array($options))

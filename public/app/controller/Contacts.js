@@ -5,24 +5,24 @@ Ext.define('Alegra.controller.Contacts', {
 	views: ['contact.Form', 'contact.Grid', 'contact.Detail'],
 	refs: [{
 			ref: 'contactPanel',
-			selector: 'panel',
+			selector: 'panel'
 		}, {
 			ref: 'contactGrid',
-			selector: 'grid',
+			selector: 'grid'
 		}],
 	init: function () {
 		this.control({
 			'contactGrid dataview': {
-				itemdblclick: this.editContact,
+				itemdblclick: this.editContact
 			},
 			'contactGrid button[action=add]': {
-				click: this.editContact,
+				click: this.editContact
 			},
 			'contactGrid button[action=delete]': {
-				click: this.destroyContact,
+				click: this.destroyContact
 			},
 			'contactForm button[action=save]': {
-				click: this.createOrUpdateContact,
+				click: this.createOrUpdateContact
 			},
 		});
 	},
@@ -70,7 +70,7 @@ Ext.define('Alegra.controller.Contacts', {
 		var records = grid.getSelectionModel().getSelection();
 		var store = this.getContactsStore();
 		var title = records.length > 1 ? 'Eliminar ' + records.length + ' contactos' : 'Eliminar contacto';
-		var msg = records.length > 1 ? '¿Estás seguro de eliminar ' + records.length + ' contactos? Esta operación no se puede deshacer.' : '¿Estás seguro de eliminar el contacto? Esta operación no se puede deshacer';
+		var msg = records.length > 1 ? '¿Estás seguro de eliminar ' + records.length + ' contactos?' : '¿Estás seguro de eliminar el contacto?';
 
 		if (records.length > 0) {
 			Ext.Msg.show({
@@ -96,8 +96,8 @@ Ext.define('Alegra.controller.Contacts', {
 							scope: this
 						});
 					}
-				},
+				}
 			});
 		}
-	},
+	}
 });

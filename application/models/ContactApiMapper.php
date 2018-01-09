@@ -3,7 +3,7 @@
 /**
  * Modelo Contacto que actua como mapper al servicio web de Alegra
  */
-class Application_Model_ContactMapper
+class Application_Model_ContactApiMapper
 {
 	private $_baseUri;
 	private $_uri;
@@ -15,11 +15,15 @@ class Application_Model_ContactMapper
 	{
 		//se obtienen los parametros de configuracion para conectarse al API
 		$dataBootstrap = Zend_Controller_Front::getInstance()->getParam('bootstrap');
-		$dataAlegra = $dataBootstrap->getOption('configAlegra');
-		$this->_baseUri = $dataAlegra['uri'];
+		
+		//buscamos la configuracion para conectarse al API de Alegra
+		$configAlegra = $dataBootstrap->getOption('configAlegra');
+		
+		//setiamos variables globales de configuracion para conectarse al API
+		$this->_baseUri = $configAlegra['uri'];
 		$this->_uri = $this->_baseUri . 'contacts';
-		$this->_email = $dataAlegra['email'];
-		$this->_token = $dataAlegra['token'];
+		$this->_email = $configAlegra['email'];
+		$this->_token = $configAlegra['token'];
 		
 		//Se inicializa objeto que se conecta al API de alegra
 		$this->_client = new Zend_Http_Client();
@@ -36,6 +40,7 @@ class Application_Model_ContactMapper
 	 */
 	public function store(Application_Model_Contact $contact)
 	{
+		//Tipo de contacto...
 		$type = array();
 		if ($contact->getIsClient())
 		{
@@ -46,6 +51,7 @@ class Application_Model_ContactMapper
 			$type[] = 'provider';
 		}
 
+		//Direccion y ciudad
 		$address = (object) [
 					'address' => $contact->getAddress(),
 					'city' => $contact->getCity(),
@@ -69,6 +75,7 @@ class Application_Model_ContactMapper
 			'internalContacts' => $contact->getInternalContacts(),
 		);
 
+		//Contacto nuevo
 		if (null === ($id = $contact->getId()))
 		{
 			$this->_client->setUri($this->_uri);
@@ -76,6 +83,7 @@ class Application_Model_ContactMapper
 			$_data = $response->getBody();
 			$data = json_decode($_data, true);
 		}
+		//Actualizar contacto
 		else
 		{
 			$this->_client->setUri($this->_uri . "/$id");
@@ -87,6 +95,36 @@ class Application_Model_ContactMapper
 	}
 
 	/**
+	 * Metodo para obtener detalle de contacto
+	 * 
+	 * @param type $id
+	 * @return type
+	 */
+	public function get($id)
+	{
+		//conexion al API
+		$this->_client->setUri($this->_uri . "/$id");
+		$response = $this->_client->request('GET');
+		$_data = $response->getBody();
+		$data = json_decode($_data, true);
+
+		//Si ocurre un error...
+		if (isset($data['code']) && $data['code'] !== 200)
+		{
+			return $data;
+		}
+
+		//curamos los datos
+		$result = $this->_parseData([$data]);
+		$contact = new Application_Model_Contact($result[0]);
+
+		//retornamos array ya listo con contacto individual
+		return [
+			'data' => $contact
+		];
+	}
+	
+	/**
 	 * Metodo para obetner listado de contactos
 	 * 
 	 * @param type $type
@@ -95,67 +133,38 @@ class Application_Model_ContactMapper
 	 * @param type $limit
 	 * @return type
 	 */
-	public function getAll($type = '', $query = '', $start = 0, $limit = 20)
+	public function getAll($start = 0, $limit = 20)
 	{
+		//Parametros GET para obtener listado de contactos
 		$params = "?start=$start&limit=$limit&metadata=true";
-		if (!empty($type) && in_array($type, array('client', 'provider')))
-		{
-			$params.= "&type=$type";
-		}
-		if (!empty($query))
-		{
-			$params.= "&query=$query";
-		}
-
+		
+		//conexion al API
 		$this->_client->setUri($this->_uri . $params);
 		$response = $this->_client->request('GET');
 		$_data = $response->getBody();
 		$data = json_decode($_data, true);
 
+		//Si ocurre un error...
 		if (isset($data['code']) && $data['code'] !== 200)
 		{
 			return $data;
 		}
-
-		$results = self::_parseData($data['data']);
+		
+		//curamos los datos
+		$_contacts = $this->_parseData($data['data']);
 		$contacts = array();
-
-		foreach ($results as $row)
+		
+		//creamos array de contactos
+		foreach ($_contacts as $c)
 		{
-			$contact = new Application_Model_Contact($row);
-			$contacts[] = $contact;
+			$contact = new Application_Model_Contact($c);
+			array_push($contacts, $contact);
 		}
 
+		//retornamos array con metadatos ya listos para la respuesta
 		return [
 			'total' => $data['metadata']['total'],
 			'data' => $contacts,
-		];
-	}
-
-	/**
-	 * Metodo para obtener detalle de contacto
-	 * 
-	 * @param type $id
-	 * @return type
-	 */
-	public function get($id)
-	{
-		$this->_client->setUri($this->_uri . "/$id");
-		$response = $this->_client->request('GET');
-
-		$_data = $response->getBody();
-		$data = json_decode($_data, true);
-
-		if (isset($data['code']) && $data['code'] !== 200)
-		{
-			return $data;
-		}
-
-		$result = self::_parseData([$data]);
-		$contact = new Application_Model_Contact($result[0]);
-
-		return [
-			'data' => $contact,
 		];
 	}
 
@@ -167,57 +176,66 @@ class Application_Model_ContactMapper
 	 */
 	public function delete($id)
 	{
+		//conexion al API
 		$this->_client->setUri($this->_uri . "/$id");
 		$response = $this->_client->request('DELETE');
 		$_data = $response->getBody();
 		$data = json_decode($_data, true);
 
+		//Si ocurre un error...
 		if (isset($data['code']) && $data['code'] !== 200)
 		{
 			return $data;
 		}
 
+		//retornamos la respuesta
 		return $data;
 	}
 
 	/**
-	 * Este metodo permite curar los datos para adecuarlos a la estructura definida en esta aplicación
+	 * Este metodo permite curar los datos para adecuarlos a 
+	 * la estructura definida en esta aplicación
+	 * Y modificar la estructura utilizada en el APi de Alegra
 	 * 
-	 * @param type $data
+	 * @param type $contactData
 	 * @return boolean
 	 */
-	private function _parseData($data = [])
+	private function _parseData($contactData = [])
 	{
 		$i = 0;
-		foreach ($data as $key => $value)
+		foreach ($contactData as $c)
 		{
-			$data[$i]['isClient'] = false;
-			$data[$i]['isProvider'] = false;
-			if (isset($value['priceList']['id']))
+			$contactData[$i]['isClient'] = false;
+			$contactData[$i]['isProvider'] = false;
+			if (isset($c['address']['city']))
 			{
-				$data[$i]['priceList'] = [$value['priceList']['name']];
+				$contactData[$i]['city'] = [$c['address']['city']];
 			}
-			if (isset($value['seller']['id']))
+			if (isset($c['priceList']['id']))
 			{
-				$data[$i]['seller'] = [$value['seller']['name']];
+				$contactData[$i]['priceList'] = [$c['priceList']['name']];
 			}
-			if (isset($value['term']['id']))
+			if (isset($c['seller']['id']))
 			{
-				$data[$i]['term'] = [$value['term']['name']];
+				$contactData[$i]['seller'] = [$c['seller']['name']];
 			}
-			if ((isset($value['type'][0]) && 'client' === $value['type'][0]) || 
-					(isset($value['type'][1]) && 'client' === $value['type'][1]))
+			if (isset($c['term']['id']))
 			{
-				$data[$i]['isClient'] = true;
+				$contactData[$i]['term'] = [$c['term']['name']];
 			}
-			if ((isset($value['type'][0]) && 'provider' === $value['type'][0]) || 
-					(isset($value['type'][1]) && 'provider' === $value['type'][1]))
+			if ((isset($c['type'][0]) && 'client' === $c['type'][0]) || 
+					(isset($c['type'][1]) && 'client' === $c['type'][1]))
 			{
-				$data[$i]['isProvider'] = true;
+				$contactData[$i]['isClient'] = true;
+			}
+			if ((isset($c['type'][0]) && 'provider' === $c['type'][0]) || 
+					(isset($c['type'][1]) && 'provider' === $c['type'][1]))
+			{
+				$contactData[$i]['isProvider'] = true;
 			}
 			$i++;
 		}
-		return $data;
+		return $contactData;
 	}
 
 }

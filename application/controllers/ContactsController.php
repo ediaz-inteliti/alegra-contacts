@@ -4,7 +4,12 @@
  */
 class ContactsController extends Zend_Controller_Action
 {
-	
+	/**
+	 * Inicializacion de clase controller
+	 * Instrucciones compartidas entre todos
+	 *  los metodos de la clase, 
+	 * se ejecuta antes de cualquier accion
+	 */
 	public function init()
 	{
 		//Setear el framework para que responda siempre en formato JSON y desactivar el uso de layouts y vistas
@@ -19,24 +24,24 @@ class ContactsController extends Zend_Controller_Action
 	 */
 	public function indexAction()
 	{
+		$contactsApi = new Application_Model_ContactApiMapper();
+		
 		//Obtener un contacto individual
 		if (($id = $this->_request->getQuery('id'))!= NULL)
 		{
-			$contacts = new Application_Model_ContactMapper();
-			$data = $contacts->get($id);
 			
+			$data = $contactsApi->get($id);
+			var_dump($data);
 			//respuesta JSON
 			return $this->_helper->json->sendJson($data);
 		}
 		
 		//Obtener un listado de contactos
-		$type = $this->_request->getQuery('type') ? $this->_request->getQuery('type') : '';
 		$start = intval($this->_request->getQuery('start')) ? intval($this->_request->getQuery('start')) : 0;
 		$limit = intval($this->_request->getQuery('limit')) ? intval($this->_request->getQuery('limit')) : 20;
-
-		$contacts = new Application_Model_ContactMapper();
-		$data = $contacts->getAll($type, '', $start, $limit);
-
+		
+		$data = $contactsApi->getAll($start, $limit);
+		
 		//respuesta JSON
 		return $this->_helper->json->sendJson($data);
 	}
@@ -48,15 +53,15 @@ class ContactsController extends Zend_Controller_Action
 	 */
 	public function createAction()
 	{
-		$params = (array) json_decode($this->getRequest()->getPost('data'));
-		unset($params['id']);
+		$_data = (array) json_decode($this->getRequest()->getPost('data'));
+		unset($_data['id']);
 
-		$contact = new Application_Model_ContactMapper();
-		$form = new Application_Model_Contact($params);
-		$data = $contact->store($form);
+		$contactApi = new Application_Model_ContactApiMapper();
+		$data = new Application_Model_Contact($_data);
+		$contact = $contactApi->store($data);
 		
 		//respuesta JSON
-		return $this->_helper->json->sendJson($data);
+		return $this->_helper->json->sendJson($contact);
 	}
 
 	/**
@@ -66,13 +71,13 @@ class ContactsController extends Zend_Controller_Action
 	 */
 	public function updateAction()
 	{
-		$params = (array) json_decode($this->getRequest()->getPost('data'));
+		$_data = (array) json_decode($this->getRequest()->getPost('data'));
 
-		$contact = new Application_Model_ContactMapper();
-		$form = new Application_Model_Contact($params);
-		$data = $contact->store($form);
+		$contactApi = new Application_Model_ContactApiMapper();
+		$data = new Application_Model_Contact($_data);
+		$contact = $contactApi->store($data);
 		
-		return $this->_helper->json->sendJson($data);
+		return $this->_helper->json->sendJson($contact);
 	}
 
 	/**
@@ -81,16 +86,16 @@ class ContactsController extends Zend_Controller_Action
 	 */
 	public function deleteAction()
 	{
-		$param = json_decode($this->getRequest()->getPost('data'));
+		$_data = json_decode($this->getRequest()->getPost('data'));
 
-		$contact = new Application_Model_ContactMapper();
+		$contactApi = new Application_Model_ContactApiMapper();
 		
-		//si es mas de un contactos
-		if (count($param) > 1)
+		//si es mas de un contacto
+		if (count($_data) > 1)
 		{
-			foreach ($param as $key => $value)
+			foreach ($_data as $c)
 			{
-				$data = $contact->delete($value->id);
+				$data = $contactApi->delete($c->id);
 			}
 			
 			if (isset($data['code']) && '200' == $data['code'])
@@ -98,13 +103,13 @@ class ContactsController extends Zend_Controller_Action
 				//respuesta JSON
 				return $this->_helper->json->sendJson([
 							'code' => 200,
-							'message' => 'Los contactos fueron eliminados correctamente.',
+							'message' => 'Los contactos fueron borrados exitosamente.',
 				]);
 			}
 		}
 		
 		//si es solo 1 contactos
-		$data = $contact->delete($param->id);
+		$data = $contactApi->delete($_data->id);
 		
 		//repuesta JSON
 		return $this->_helper->json->sendJson($data);
